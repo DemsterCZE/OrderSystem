@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 
-class OrderLateAcceptStatusTest(TestCase):
+class OrderTests(TestCase):
     def setUp(self):
         self.table = Table.objects.create(table_name="T1")
         self.emp = Employee.objects.create(username="E1")
