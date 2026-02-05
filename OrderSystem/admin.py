@@ -22,9 +22,12 @@ class OrderAdmin(admin.ModelAdmin):
         'order_time',
         'accepted_time',
         'completed_time',
+        'late_accept',
+        'late_completion',
+
     )
 
-    list_filter = ('order_status', 'table_id', 'order_time')
+    list_filter = ('order_status', 'table_id','late_accept', 'late_completion')
 
     search_fields = ('order_id', 'table_id__table_name')
 

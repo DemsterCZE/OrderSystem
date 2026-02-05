@@ -86,8 +86,8 @@ class Order(models.Model):
     order_time = models.DateTimeField(auto_now_add=True, verbose_name="Čas vytvoření objednávky")
     accepted_time = models.DateTimeField(null=True, blank=True, verbose_name="Čas přijetí objednávky")
     completed_time = models.DateTimeField(null=True, blank=True, verbose_name="Čas dokončení objednávky")
-    late_accept = models.BooleanField(default=False)
-    late_completion = models.BooleanField(default=False)
+    late_accept = models.BooleanField(default=False, verbose_name="Objednávka nepřijata včas")
+    late_completion = models.BooleanField(default=False,verbose_name="Objednávka nedokončena včas")
 
     assigned_employee = models.ForeignKey(
         Employee,
