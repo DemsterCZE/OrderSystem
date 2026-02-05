@@ -1,6 +1,6 @@
 # ☕ Kavárna U Pole – Dokumentace k projektu
 
-## 📋 Obsah ZIP souboru
+## 📋 Obsah repozitáře
 - `/config` - Konfigurační soubory Django
 - `/OrderSystem` - Hlavní aplikace s logikou a testy.
 - `/bin` - Podpůrné skripty k usnadnění práce
@@ -14,8 +14,9 @@
 
 
 ## 🛠 Instalace a spuštění
-1. Rozbalte ZIP archiv a otevřete terminál ve složce práce.
-2. Spusťte příkaz: 
+1. Naklonujte si repozitář
+2. V příkazovém řádku nastavte pracovní adresář na naklonovaný repozitář
+3. Spusťte příkaz: 
 ```bash
 docker-compose up --build
 ```
