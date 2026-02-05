@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kavárna U Pole | Vytvoření objednávky</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'create_order.css' %}">
+</head>
+<body>
+{% block content %}
+<div class="container customer-order">
+    <header class="order-header">
+        <h1>Objednávka pro {{ table.table_name }}</h1>
+        <p>Vyberte si z naší nabídky:</p>
+    </header>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="menu-cards">
+            {% for item in menu_items %}
+            {% ifchanged item.category %}
+            <h2 class="category-title">{{ item.category }}</h2>
+            {% endifchanged %}
+
+            <div class="item-card">
+                <div class="item-main">
+                    <h3>{{ item.item_name }}</h3>
+                    <span class="price" id="price_{{ item.id }}"
+                          data-price="{{ item.price }}">{{ item.price }} Kč</span>
+                    <div class="item-subtotal">Celkem: <span id="subtotal_{{ item.id }}">0</span> Kč</div>
+                </div>
+
+                <div class="qty-control">
+                    <button type="button" onclick="changeQty('{{ item.id }}', -1)">−</button>
+                    <input type="number" name="quantity_{{ item.id }}"
+                           id="input_{{ item.id }}" value="0" min="0" readonly>
+                    <button type="button" onclick="changeQty('{{ item.id }}', 1)">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="total-summary">
+            <h3>Celková částka: <strong><span id="grand-total">0</span> Kč</strong></h3>
+
+        </div>
+        <div id="error-message" style="display: none; color: #ef4444; margin-bottom: 10px; font-weight: bold;">
+            Musíte vybrat alespoň jednu položku!
+        </div>
+
+
+        <div class="sticky-footer">
+            <button type="submit" id="submit-btn" class="btn-order">Odeslat objednávku</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+<script>
+    function changeQty(id, delta) {
+        const input = document.getElementById('input_' + id);
+        const priceElement = document.getElementById('price_' + id);
+        const subtotalElement = document.getElementById('subtotal_' + id);
+
+        const unitPrice = parseFloat(priceElement.getAttribute('data-price'));
+
+        let val = parseInt(input.value) + delta;
+        if (val < 0) val = 0;
+        else if (val > 99) val = 99;
+
+
+        input.value = val;
+
+        subtotalElement.innerText = (val * unitPrice).toLocaleString();
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        let total = 0;
+        const qtyInputs = document.querySelectorAll('input[id^="input_"]');
+
+        qtyInputs.forEach(input => {
+            const id = input.id.replace('input_', '');
+            const priceElement = document.getElementById('price_' + id);
+            const unitPrice = parseFloat(priceElement.getAttribute('data-price'));
+            const quantity = parseInt(input.value);
+
+            total += (quantity * unitPrice);
+        });
+
+        document.getElementById('grand-total').innerText = total.toLocaleString();
+    }
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        let totalQuantity = 0;
+        document.querySelectorAll('input[id^="input_"]').forEach(input => {
+            totalQuantity += parseInt(input.value);
+        });
+
+        if (totalQuantity === 0) {
+            e.preventDefault();
+            const errorMsg = document.getElementById('error-message');
+            errorMsg.style.display = "block";
+
+            const btn = document.getElementById('submit-btn');
+            btn.style.animation = "shake 0.5s";
+            setTimeout(() => btn.style.animation = "", 500);
+        }
+    });
+</script>
+
+</body>
+</html>

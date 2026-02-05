@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Kavárna U Pole | {{ table.table_name }}</title>
+    {% load static %}
+    {% load qr_code %}
+    <link rel="stylesheet" href="{% static 'table_page.css' %}">
+</head>
+<body>
+
+<div class="container">
+    <div class="navigation-top">
+        <a href="{% url 'landing_page' %}" class="btn-secondary">← Zpět na přehled stolů</a>
+    </div>
+    <h1>{{ table.table_name }}</h1>
+
+    <div class="active-orders-section">
+        <h2>Aktivní objednávky</h2>
+        {% for order in active_orders %}
+        <div id="order-card-{{ order.order_id }}" class="order-card status-{{ order.get_actual_order_status }}">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Objednávka #{{ order.order_id }}</h3>
+                <span class="status-badge badge-{{ order.get_actual_order_status }}"
+                      style="font-weight: bold; padding: 4px 8px; border-radius: 4px;">
+                        {{ order.get_actual_order_status }}
+                    </span>
+            </div>
+
+            <ul>
+                {% for oi in order.items.all %}
+                <li>
+                    <span>{{ oi.quantity }}x {{ oi.item.item_name }}</span>
+                    <span>{{ oi.total_item_price }} Kč</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                <span><strong>Cena: {{ order.get_total_order_price }} Kč</strong></span>
+                <small style="color: #666;">Vytvořeno: {{ order.order_time|date:"H:i" }}</small>
+            </div>
+
+            <div class="employee-note" style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                 <small style="color: #666;">Přijato: {{ order.accepted_time|date:"H:i" }}</small>
+                <p style="font-style: italic; color: #4b5563; font-size: 0.9rem;">
+                    {% if order.assigned_employee %}
+                    Tuto objednávku pro Vás s láskou připravuje <strong>{{ order.assigned_employee.first_name|default:order.assigned_employee.username }}</strong>.
+                    {% else %}
+                    Vaši objednávku zpracováváme.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="alert-container">
+                {% if order.get_actual_order_status == 'Nestihnuta' %}
+                <p style="margin-top: 10px; color: #b45309; font-size: 0.9rem; font-style: italic;">⚠️ Omlouváme se,
+                    příprava trvá déle.</p>
+                {% elif order.get_actual_order_status == 'Propásla' %}
+                <p style="margin-top: 10px; color: #dc2626; font-size: 0.9rem; font-weight: bold;">Kontaktujte prosím
+                    obsluhu.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>Žádné aktivní objednávky.</p>
+        {% endfor %}
+
+        <hr>
+        <div style="text-align: right;">
+            <h3>Celkem k zaplacení u stolu: <span style="color: #1d4ed8;">{{ table_total }} Kč</span></h3>
+        </div>
+    </div>
+
+    <div class="new-order-section">
+        <h2>Nová objednávka</h2>
+        <form method="post" action="{% url 'create_order' table.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary">Otevřít lístek</button>
+        </form>
+        <div style="margin: 25px 0; display: flex; align-items: center; justify-content: center;">
+            <div style="flex: 1; height: 1px; background: #ddd;"></div>
+            <span style="margin: 0 15px; color: #888;">nebo</span>
+            <div style="flex: 1; height: 1px; background: #ddd;"></div>
+        </div>
+        <h2>Naskenujte QR Kód</h2>
+        <div style="background: white; display: inline-block; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            {% url 'create_order' table.id as table_path %}
+            {% with host=request.get_host %}
+            {% with full_url="http://"|add:host|add:table_path %}
+            <img src="{% qr_url_from_text full_url %}" alt="QR">
+            {% endwith %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+<script>
+    let lastOrderCount = null;
+
+    async function checkOrderUpdates() {
+        const tableId = "{{ table.id }}";
+        try {
+            const countResp = await fetch(`{% url 'order_count_api' %}?table_id=${tableId}`);
+            const countData = await countResp.json();
+            const currentCount = countData.orders[0].count;
+
+            if (lastOrderCount !== null && currentCount !== lastOrderCount) {
+                location.reload();
+                return;
+            }
+            lastOrderCount = currentCount;
+
+            const statusResp = await fetch(`{% url 'order_status_api' %}?table_id=${tableId}`);
+            const statusData = await statusResp.json();
+
+            statusData.orders.forEach(order => {
+                const card = document.getElementById(`order-card-${order.id}`);
+                if (card) {
+                    const badge = card.querySelector('.status-badge');
+                    if (badge && badge.innerText.trim() !== order.status) {
+                        location.reload();
+                    }
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    checkOrderUpdates();
+    setInterval(checkOrderUpdates, 10000);
+</script>
+</body>
+</html>

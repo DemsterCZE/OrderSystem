@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kavárna U Pole | Manažer objednávek</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'order_dashboard.css' %}">
+</head>
+<body>
+
+<header class="header">
+    <div class="user-greeting">☕ Zdravím, {{ user.first_name|default:user.username }}!</div>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Odhlásit se</button>
+    </form>
+</header>
+
+<div class="order-grid">
+    {% for o in orders %}
+    <div id="order-card-{{ o.order_id }}" class="order-card status-{{ o.get_actual_order_status }}">
+
+        <div class="card-header">
+            <span class="table-name">{{ o.table_id.table_name }}</span>
+            <a target="_blank" style="text-decoration: none" href="{% url 'order_detail' o.order_id %}"
+               class="detail-link" title="Zobrazit detail objednávky">
+                🔍
+            </a>
+        </div>
+
+        <div class="status-badge badge-{{ o.get_actual_order_status }}">
+            {{ o.get_actual_order_status }}
+        </div>
+
+        <div class="order-details">
+            <div style="font-size: 0.85rem; color: #4b5563; margin-top: 5px;">
+                <div><strong>Vytvořeno:</strong> {{ o.order_time|date:"H:i" }}</div>
+
+                {% if o.accepted_time %}
+                <div style="color: var(--primary);">
+                    <strong>Přijato:</strong> {{ o.accepted_time|date:"H:i" }}
+                </div>
+                {% endif %}
+            </div>
+            <div style="margin-top: 8px;">
+                <small style="color: #9ca3af;">ID: #{{ o.order_id }}</small>
+            </div>
+
+            <div style="margin-top: 8px;">
+                Celková cena: <b>{{o.get_total_order_price}} Kč</b>
+            </div>
+        </div>
+
+        <div class="actions">
+            {% if o.order_status == "Nepřijata" %}
+            <form method="post" action="{% url 'order_accept' o.order_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-accept">Přijmout</button>
+            </form>
+
+            {% elif o.order_status == "Přijata" %}
+
+            {% if o.assigned_employee == user %}
+            <form style="margin-top:40px" method="post" action="{% url 'order_complete' o.order_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-complete">Označit jako hotové</button>
+            </form>
+            {% else %}
+            <div style="background: #f3f4f6; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem;">
+                👤 Zodpovídá: <strong>{{ o.assigned_employee.first_name }} {{o.assigned_employee.last_name}}</strong>
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <form method="post" action="{% url 'order_reject' o.order_id %}">
+                {% csrf_token %}
+                {% if o.assigned_employee == user %}
+                {% else %}
+                <button type="submit" class="btn-action"
+                        style="background-color: #fecaca; color: #b91c1c; margin-top: 8px; border: 1px solid #f87171;">
+                    Odmítnout
+                </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        📭 <b>Žádné aktivní objednávky. Můžeš si dát kávu!</b>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    let lastOrderCount = null;
+
+    async function checkNewOrders() {
+        try {
+            const response = await fetch("{% url 'order_count_api' %}");
+            const data = await response.json();
+            const currentCount = data.orders[0].count;
+
+            if (lastOrderCount === null) {
+                lastOrderCount = currentCount;
+                return;
+            }
+
+            if (currentCount > lastOrderCount) {
+                lastOrderCount = currentCount;
+                location.reload()
+            } else {
+                lastOrderCount = currentCount;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function updateOrders() {
+        try {
+            const response = await fetch("{% url 'order_status_api' %}");
+            const data = await response.json();
+
+            data.orders.forEach(order => {
+                const card = document.getElementById(`order-card-${order.id}`);
+                if (card) {
+                    card.className = `order-card status-${order.status}`;
+                    const badge = card.querySelector('.status-badge');
+                    if (badge) {
+                        badge.innerText = order.status;
+                        badge.className = `status-badge badge-${order.status}`;
+                    }
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    updateOrders();
+    checkNewOrders();
+    setInterval(updateOrders, 20000);
+    setInterval(checkNewOrders, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Kavárna U Pole | Hlavní rozcestník</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main_page.css' %}">
+</head>
+<body>
+
+<div class="hub-container">
+    <div class="brand">☕ Kavárna U Pole</div>
+
+    <div class="nav-buttons">
+        <a href="{% url 'orders_dashboard' %}" class="btn-nav">Systém pro personál</a>
+        <a href="{% url 'admin:index' %}" class="btn-nav btn-admin">Správa (Admin)</a>
+    </div>
+
+    <hr>
+
+    <h2>Naše stoly</h2>
+    <p>Klikněte k posazení se k Vašemu stolu</p>
+
+    <div class="table-grid">
+        {% for table in tables %}
+        <a href="{% url 'table' table.id %}" class="table-card">
+            <div class="table-icon">🪑</div>
+            <div class="table-name">{{ table.table_name }}</div>
+        </a>
+        {% empty %}
+        <p>Aktuálně nemáme v systému žádné stoly.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

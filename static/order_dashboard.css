@@ -1,0 +1,191 @@
+:root {
+    --bg: #f3f4f6;
+    --card-white: #ffffff;
+    --primary: #2563eb;
+    --danger: #ff4900;
+    --warning: #7c7c7c;
+    --success: #10b981;
+    --text-dark: #1f2937;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-white);
+    padding: 15px 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.user-greeting {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.logout-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.order-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background: var(--card-white);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    border-top: 8px solid #ccc;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+}
+
+.status-Nepřijata {
+    border-top-color: var(--warning);
+}
+
+.status-Přijata {
+    border-top-color: var(--primary);
+}
+
+.status-Propásla {
+    border-top-color: var(--danger);
+    background-color: #fef2f2;
+    animation: pulse 2s infinite;
+}
+
+.status-Nestihnuta {
+    border-top-color: #ff0404;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.table-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.order-time {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.badge-Nepřijata {
+    background: #aaaaaa;
+    color: #000000;
+}
+
+.badge-Přijata {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-Propásla {
+    background: #fee2e2;
+    color: #ff600a;
+}
+
+.badge-Nestihnuta {
+    background: #f3e8ff;
+    color: #f80303;
+}
+
+.btn-action {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.2s;
+}
+
+.btn-accept {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-complete {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-action:hover {
+    opacity: 0.9;
+}
+
+.empty-state {
+    text-align: center;
+    grid-column: 1/-1;
+    padding: 50px;
+    color: #9ca3af;
+    font-size: 1.2rem;
+}
+
+.detail-link {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    padding: 5px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    line-height: 1;
+}
+
+.detail-link:hover {
+    background-color: #f3f4f6;
+    transform: scale(1.1);
+}

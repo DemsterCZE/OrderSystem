@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kavárna U Pole | Přihlášení</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'login_page.css' %}">
+</head>
+<body>
+
+<div class="login-card">
+    <div class="brand">☕ Kavárna U Pole</div>
+    <h4 style="text-align: center">Přihlášení pro personál</h4>
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <p class="error-msg">Nesprávné jméno nebo heslo.</p>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="id_username">Uživatelské jméno</label>
+            {{ form.username }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_password">Heslo</label>
+            {{ form.password }}
+        </div>
+
+        <button type="submit">Vstoupit do systému</button>
+    </form>
+</div>
+
+</body>
+</html>
