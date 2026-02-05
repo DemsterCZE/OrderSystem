@@ -4,12 +4,10 @@ services:
   web:
     build: .
     container_name: kavarna_u_pole
+    env_file: ".env"
     volumes:
       - .:/app:z
     ports:
       - "8000:8000"
-    environment:
-      - DEBUG=${DEBUG}
-      - SECRET_KEY=${SECRET_KEY}
     stdin_open: true
     tty: true
