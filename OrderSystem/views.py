@@ -6,7 +6,6 @@ from .models import *
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
-from django.db import transaction
 
 
 class LandingPageView(ListView):
@@ -35,16 +34,15 @@ class EmployeeOrderDashboardView(ListView):
 @method_decorator(login_required, name='dispatch')
 class OrderAcceptView(View):
     def post(self, request, pk):
-        with transaction.atomic():
-            order = Order.objects.select_for_update().get(pk=pk)
-            if order.assigned_employee:
-                return redirect('orders_dashboard')
-            try:
-                employee = request.user
-                order.order_accepted(employee)
-            except AttributeError:
-                print("Při přijímání objednávky se stala chyba")
+        order = get_object_or_404(Order, pk=pk)
+        if order.assigned_employee:
             return redirect('orders_dashboard')
+        try:
+            employee = request.user
+            order.order_accepted(employee)
+        except AttributeError:
+            print("Při přijímání objednávky se stala chyba")
+        return redirect('orders_dashboard')
 
 
 ## View pro dokončení objednávky

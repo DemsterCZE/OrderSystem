@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models,transaction
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from datetime import timedelta
@@ -147,9 +147,16 @@ class Order(models.Model):
         if self.assigned_employee is not None:
             return
 
-        self.accepted_time = timezone.now()
-        self.assigned_employee = employee
-        self._change_status(self.Status.ACCEPTED)
+        with transaction.atomic():
+            updated_order = Order.objects.select_for_update().get(pk=self.order_id)
+
+            if updated_order.assigned_employee is not None:
+                return
+
+            updated_order.assigned_employee = employee
+            updated_order.order_status = Order.Status.ACCEPTED
+            updated_order.accepted_time = timezone.now()
+            updated_order.save()
 
     def order_completed(self, employee: Employee) -> None:
         if employee == self.assigned_employee:
