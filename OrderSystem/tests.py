@@ -1,7 +1,10 @@
-from django.test import TestCase
+import threading
+from django.test import TestCase,TransactionTestCase
 from .models import Order, Table, Employee
 from datetime import timedelta
 from django.utils import timezone
+from django.db import connection
+
 
 
 class OrderTests(TestCase):
@@ -37,7 +40,9 @@ class OrderTests(TestCase):
         order.order_declined_by(self.emp2)
         order.order_accepted(self.emp)
 
-        self.assertEqual(order.get_actual_order_status(), Order.Status.ACCEPTED)
+        order.refresh_from_db()
+
+        self.assertEqual(order.order_status, Order.Status.ACCEPTED)
 
         order.order_completed(self.emp)
         order.refresh_from_db()
@@ -53,3 +58,33 @@ class OrderTests(TestCase):
             order.order_completed(self.emp2)
 
         self.assertEqual(str(cm.exception), "Objednávku může dokončit jen ten kdo za ní má odpovědnost")
+
+
+class OrderRaceConditionTests(TransactionTestCase):
+    def setUp(self):
+        self.table = Table.objects.create(table_name="T1")
+        self.emp = Employee.objects.create(username="E1")
+        self.emp2 = Employee.objects.create(username="E2")
+
+    def test_race_condition(self):
+        order = Order.objects.create(table_id=self.table)
+
+        def try_accept(employee_obj):
+            try:
+                order_in_thread = Order.objects.get(pk=order.pk)
+                order_in_thread.order_accepted(employee_obj)
+            finally:
+                connection.close()
+        t1 = threading.Thread(target=try_accept, args=(self.emp,))
+        t2 = threading.Thread(target=try_accept, args=(self.emp2,))
+
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+        order.refresh_from_db()
+
+        self.assertEqual(order.order_status, Order.Status.ACCEPTED)
+
+        self.assertIn(order.assigned_employee, [self.emp, self.emp2])
