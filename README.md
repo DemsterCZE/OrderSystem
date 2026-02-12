@@ -1,5 +1,7 @@
 # ☕ Kavárna U Pole – Project Documentation
 
+[English Edition] | [Česká verze](README_CZ.md)
+
 ## 📋 Repository Structure
 - `/config` - Django configuration files.
 - `/OrderSystem` - Core application logic, business rules, and test suites.
